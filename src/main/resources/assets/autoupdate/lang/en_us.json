@@ -1,0 +1,8 @@
+{
+    "autoupdate.title.mainUpdateBtn": "Checking for update",
+    "autoupdate.checkScreen.backBtn": "Back to main menu",
+    "autoupdate.checkScreen.toExportBtn": "Export mod list from local",
+    "autoupdate.exportScreen.exportListBtn": "Export",
+    "autoupdate.exportScreen.emptyVersionToast.title": "List version is empty",
+    "autoupdate.exportScreen.emptyVersionToast.content": "The version of the mods list shouldn't be empty!"
+}

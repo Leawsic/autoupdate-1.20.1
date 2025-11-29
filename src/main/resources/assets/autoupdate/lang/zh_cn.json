@@ -1,0 +1,8 @@
+{
+    "autoupdate.title.mainUpdateBtn": "检查更新",
+    "autoupdate.checkScreen.backBtn": "返回主界面",
+    "autoupdate.checkScreen.toExportBtn": "从本地生成模组列表",
+    "autoupdate.exportScreen.exportListBtn": "导出",
+    "autoupdate.exportScreen.emptyVersionToast.title": "列表版本为空",
+    "autoupdate.exportScreen.emptyVersionToast.content": "导出模组列表的版本不能为空！"
+}
