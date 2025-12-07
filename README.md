@@ -13,7 +13,7 @@ AutoUpdate 是一个为 Minecraft 1.20.1 设计的 Fabric
 ## 使用说明
 ### 进入模组界面
 在游戏主界面点击`U`字按钮(默认、可配置)
-### 主界面选项
+### 模组主界面选项
 
 1. **检查更新**: 比较本地模组与远程模组列表
 2. **导出模组列表**: 创建包含当前已安装模组的 JSON 文件
@@ -31,9 +31,14 @@ AutoUpdate 是一个为 Minecraft 1.20.1 设计的 Fabric
 模组会在版本目录下`/autoupdate/config.json`创建配置文件，包含以下选项：
 
 - `mod_list_url`: 远程模组列表 JSON 文件的 URL
-- `replace_realms_button`: 是否替换 Realms 按钮（默认：false）
+- `replace_realms_button`: 是否替换 Realms 按钮（默认：false，即为在游戏主界面添加`U`字按钮）
 - `auto_download_missing_mod`: 是否自动下载缺失的模组（默认：false）
-- `save_mods_list_to_local`: 是否保存模组列表至本地（默认：false）(TODO)
+- `save_mods_list_to_local`: 是否保存模组列表至本地（默认：false）
+
+### TODO
+- [ ] 支持展示待更新模组列表
+- [ ] 支持自动从网络(主要为Modrinth、Curseforge)下载缺失模组
+- [ ] 支持保存云端模组列表到本地 
 
 ### 从源码构建
 
