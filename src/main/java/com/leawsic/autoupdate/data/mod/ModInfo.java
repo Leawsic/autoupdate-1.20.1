@@ -1,4 +1,4 @@
-package com.leawsic.autoupdate.data;
+package com.leawsic.autoupdate.data.mod;
 
 import com.google.gson.JsonObject;
 import net.fabricmc.loader.api.ModContainer;

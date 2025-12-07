@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatterBuilder;
 
 import static java.time.temporal.ChronoField.*;
 
-public class ATimeFormatter {
+public class TimeFormatter {
     private static final DateTimeFormatter LOCAL_TIME=new DateTimeFormatterBuilder()
             .appendValue(HOUR_OF_DAY, 2)
             .appendLiteral('.')

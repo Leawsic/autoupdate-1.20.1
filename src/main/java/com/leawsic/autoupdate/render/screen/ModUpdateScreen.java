@@ -1,19 +1,16 @@
-package com.leawsic.autoupdate.render;
+package com.leawsic.autoupdate.render.screen;
 
-import com.google.gson.Gson;
 import com.leawsic.autoupdate.AutoUpdate;
+import com.leawsic.autoupdate.tool.UpdateChecker;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.Text;
-import org.lwjgl.system.Platform;
 
 public class ModUpdateScreen extends Screen {
     Screen parentScreen;
-    final String updateScreenTranslateKey=".checkScreen";
-    private static final String DOWNLOAD_THREAD_NAME="Autoupdate Mod Download Thread";
-    private Gson gson=new Gson();
+    public static final String updateScreenTranslateKey=".checkScreen";
+    private static final String DOWNLOAD_THREAD_NAME="Autoupdate Download Thread";
 
     public ModUpdateScreen(Text title,Screen parent){
         super(title);
@@ -24,12 +21,10 @@ public class ModUpdateScreen extends Screen {
     protected void init() {
         //检查更新按钮
         ButtonWidget checkBtn=
-                ButtonWidget.builder(title,button -> {
-                    this.client.getToastManager().add(SystemToast.create(this.client,SystemToast.Type.NARRATOR_TOGGLE,title, Text.of(this.client.runDirectory.getPath())));
-                }).dimensions(this.width/2-100, this.height/5-15,200,30).build();
+                ButtonWidget.builder(title,button -> UpdateChecker.checkUpdateWithButton(this.client,updateScreenTranslateKey,button)).dimensions(this.width/2-100, this.height/5-15,200,30).build();
 
         //导出模组列表按钮
-        ButtonWidget exportBtn= ButtonWidget.builder(Text.translatable(AutoUpdate.MOD_ID+updateScreenTranslateKey+".toExportBtn"),
+        ButtonWidget toExportScreenBtn= ButtonWidget.builder(Text.translatable(AutoUpdate.MOD_ID+updateScreenTranslateKey+".toExportBtn"),
                 button -> this.client.setScreen(new ExportModsListScreen(Text.of("exportModsListScreen"),this))).dimensions(this.width/2-100,
                 this.height/3*2-15,200,30).build();
 
@@ -38,16 +33,13 @@ public class ModUpdateScreen extends Screen {
 
         addDrawableChild(checkBtn);
         addDrawableChild(backBtn);
-        addDrawableChild(exportBtn);
+        addDrawableChild(toExportScreenBtn);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         //必须得加
         this.renderBackground(context);
-        String platform=Platform.get().getName();
-        int length=platform.length();
-        context.drawTextWithShadow(this.textRenderer,platform, this.width/2-(length/2),0,0xffffff);
 
         //此super方法必须得有且得在最后
         super.render(context,mouseX,mouseY,delta);

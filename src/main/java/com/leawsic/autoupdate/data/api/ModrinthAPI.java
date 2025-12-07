@@ -1,4 +1,4 @@
-package com.leawsic.autoupdate.data;
+package com.leawsic.autoupdate.data.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

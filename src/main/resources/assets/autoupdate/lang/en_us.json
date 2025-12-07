@@ -1,8 +1,18 @@
 {
     "autoupdate.title.mainUpdateBtn": "Checking for update",
+
     "autoupdate.checkScreen.backBtn": "Back to main menu",
     "autoupdate.checkScreen.toExportBtn": "Export mod list from local",
+    "autoupdate.checkScreen.needsUpdateToast.title": "Your mods need updating!",
+    "autoupdate.checkScreen.needsUpdateToast.content": "Download version: v%s mods pack from QQ group SOON!",
+    "autoupdate.checkScreen.noNeedToUpdateToast.title": "Nothing to update",
+    "autoupdate.checkScreen.noNeedToUpdateToast.content": "There's no need to update your mods now......",
+    "autoupdate.checkScreen.failToGetModsListToast.title": "Unable to get mods list",
+    "autoupdate.checkScreen.failToGetModsListToast.content": "Check your network connection or ask server host for help",
+
     "autoupdate.exportScreen.exportListBtn": "Export",
     "autoupdate.exportScreen.emptyVersionToast.title": "List version is empty",
-    "autoupdate.exportScreen.emptyVersionToast.content": "The version of the mods list shouldn't be empty!"
+    "autoupdate.exportScreen.emptyVersionToast.content": "The version of the mods list shouldn't be empty!",
+    "autoupdate.exportScreen.exportSuccessfullyToast.title": "Mods List Exported Successfully",
+    "autoupdate.exportScreen.exportSuccessfullyToast.content": "You've successfully exported your mods list!"
 }

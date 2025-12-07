@@ -1,68 +1,67 @@
 package com.leawsic.autoupdate.tool;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.leawsic.autoupdate.AutoUpdate;
-import com.leawsic.autoupdate.data.ModInfo;
-import com.leawsic.autoupdate.data.RemoteModList;
+import com.leawsic.autoupdate.data.UpdateCheckResult;
+import com.leawsic.autoupdate.data.config.Config;
+import com.leawsic.autoupdate.data.mod.ModInfo;
+import com.leawsic.autoupdate.data.mod.RemoteModList;
+import com.leawsic.autoupdate.render.ToastManager;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.widget.ButtonWidget;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutionException;
 
 public class UpdateChecker {
     private static final String MODRINTH_API = "https://api.modrinth.com/v2/project/%s/version?loaders=[\"fabric\"]&game_versions=[\"%s\"]";
     private static final String CURSEFORGE_API = "https://api.curseforge.com/v1/mods/%s/files";
 
-    // URL to fetch the remote mod list JSON
-    // TODO: change to real url
-    private static final String REMOTE_MOD_LIST_URL = "https://example.com/modlist.json";
+    // URL to fetch the remote mod list JSON from
+    private static final String REMOTE_MOD_LIST_URL = Config.getInstance().getConfigInfoFromFile(null).modListUrl;
 
     public UpdateChecker() {}
 
     /**
      * Fetch remote mod list and compare with local mods to find updates
      */
-    public CompletableFuture<Map<String, ModInfo>> checkForUpdates(List<ModInfo> localMods) {
+    private static CompletableFuture<UpdateCheckResult> checkForUpdates() {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Fetch the remote mod list
                 RemoteModList remoteModList = fetchRemoteModList();
 
-                // Create a map of local mods for easier lookup
-                Map<String, ModInfo> localModMap = localMods.stream()
-                        .collect(Collectors.toMap(ModInfo::getId, ModInfo -> ModInfo));
-
                 // Map to store mods that need updates
-                Map<String, ModInfo> modsToUpdate = new HashMap<>();
+                List<ModInfo> modsToUpdate=new ArrayList<>();
 
-                // Compare remote mods with local mods
-                for (ModInfo Mod : remoteModList.getModInfos()) {
-                    ModInfo localMod = localModMap.get(Mod.getId());
+                //todo 完善更新逻辑 支持更多更新判断模式 目前只是比较: 是否存在 & 版本是否相同
+                if (remoteModList != null) {
+                    for (ModInfo remoteMod : remoteModList.getModInfos()) {
+                        ModInfo localMods = LocalModListManager.getInstance().getModById(remoteMod.getId());
 
-                    // If mod exists locally and versions don't match, mark for update
-                    if (localMod != null && !localMod.getVersion().equals(Mod.getVersion())) {
-                        modsToUpdate.put(Mod.getId(), Mod);
+                        // If mod exists locally and versions don't match, mark for update
+                        if (localMods != null && !localMods.getVersion().equals(remoteMod.getVersion())) {
+                            modsToUpdate.add(remoteMod);
+                        }
+                        // If mod doesn't exist locally, mark for download
+                        else if (localMods == null) {
+                            modsToUpdate.add(remoteMod);
+                        }
                     }
-                    // If mod doesn't exist locally, mark for download
-                    else if (localMod == null) {
-                        modsToUpdate.put(Mod.getId(), Mod);
-                    }
+                }else {
+                    return UpdateCheckResult.failure();
                 }
 
-                return modsToUpdate;
+                return UpdateCheckResult.success(modsToUpdate,remoteModList.getPackVersion());
             } catch (Exception e){
                 AutoUpdate.LOGGER.error("{}", e.getMessage());
-                return new HashMap<>();
+                return UpdateCheckResult.failure();
             }
         });
     }
@@ -70,45 +69,43 @@ public class UpdateChecker {
     /**
      * Fetch the remote mod list from the server
      */
-    private RemoteModList fetchRemoteModList() throws IOException{
-        URL url = new URL(REMOTE_MOD_LIST_URL);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    private static RemoteModList fetchRemoteModList(){
+        try {
+            URL url = new URL(REMOTE_MOD_LIST_URL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-            Gson gson = new Gson();
-            return gson.fromJson(reader, RemoteModList.class);
+            if (connection.getResponseCode()==HttpURLConnection.HTTP_OK) {
+                InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+                Gson gson = new Gson();
+                return gson.fromJson(reader, RemoteModList.class);
+            }else {
+                AutoUpdate.LOGGER.warn("Fail to fetch remote mods list--Bad response {}",connection.getResponseCode());
+                return null;
+            }
+        } catch (IOException e) {
+            AutoUpdate.LOGGER.warn("Error when fetching remote mods list!");
+            return null;
         }
     }
-
-    /**
-     * Old method - kept for reference but not used anymore
-     */
-    @Deprecated
-    private boolean checkModrinthUpdate(ModInfo mod) throws IOException {
-        String minecraftVersion = MinecraftClient.getInstance().getGameVersion();
-        String urlString = String.format(MODRINTH_API, mod.getId(), minecraftVersion);
-
-        URL url = new URL(urlString);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        //modrinth要求的
-        connection.setRequestProperty("User-Agent",
-                AutoUpdate.MOD_ID+'/'+AutoUpdate.getVersion().getFriendlyString());
-
-        try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-            JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
-            // TODO: complete compare-mod logic
-            return false;
-        }
+    public static void checkUpdateWithButton(MinecraftClient client, String updateScreenTranslateKey,ButtonWidget button){
+        checkUpdate(client,updateScreenTranslateKey);
+        button.active=false;
     }
-
-    public void notifyIfUpdatesAvailable(Map<String, ModInfo> updates) {
-        int updateCount = updates.size();
-
-        if (updateCount > 0) {
-            MinecraftClient.getInstance().inGameHud.setOverlayMessage(
-                    Text.literal("§a发现 " + updateCount + " 个模组更新！请检查自动更新菜单。"),
-                    false
-            );
+    public static void checkUpdate(MinecraftClient client,String updateScreenTranslateKey){
+        try {
+            UpdateCheckResult result=UpdateChecker.checkForUpdates().get();
+            if (result.success() && !result.modsToUpdate().isEmpty()){
+                client.getToastManager().add(ToastManager.getToastWithArgs(client,
+                        AutoUpdate.MOD_ID+updateScreenTranslateKey+".needsUpdateToast",result.version()));
+            }else if (result.modsToUpdate().isEmpty() && result.success()){
+                client.getToastManager().add(ToastManager.getToast(client,AutoUpdate.MOD_ID+updateScreenTranslateKey+".noNeedToUpdateToast"));
+            }else {
+                client.getToastManager().add(ToastManager.getToast(client,
+                        AutoUpdate.MOD_ID+updateScreenTranslateKey+".failToGetModsListToast"));
+                AutoUpdate.LOGGER.warn("Fail to check need-updating mods");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            AutoUpdate.LOGGER.warn("Fail to get the result of update-checker {}", e.getMessage());
         }
     }
 }

@@ -1,8 +1,18 @@
 {
     "autoupdate.title.mainUpdateBtn": "检查更新",
+
     "autoupdate.checkScreen.backBtn": "返回主界面",
     "autoupdate.checkScreen.toExportBtn": "从本地生成模组列表",
+    "autoupdate.checkScreen.needsUpdateToast.title": "你的模组需要更新！",
+    "autoupdate.checkScreen.needsUpdateToast.content": "请尽快从QQ群下载版本为: v%s 模组包或补丁！",
+    "autoupdate.checkScreen.noNeedToUpdateToast.title": "无需更新",
+    "autoupdate.checkScreen.noNeedToUpdateToast.content": "你的模组暂时无需更新……",
+    "autoupdate.checkScreen.failToGetModsListToast.title": "未能获取到模组列表",
+    "autoupdate.checkScreen.failToGetModsListToast.content": "请检查网络链接或向服务器管理员寻求帮助",
+
     "autoupdate.exportScreen.exportListBtn": "导出",
     "autoupdate.exportScreen.emptyVersionToast.title": "列表版本为空",
-    "autoupdate.exportScreen.emptyVersionToast.content": "导出模组列表的版本不能为空！"
+    "autoupdate.exportScreen.emptyVersionToast.content": "导出模组列表的版本不能为空！",
+    "autoupdate.exportScreen.exportSuccessfullyToast.title": "模组列表导出成功",
+    "autoupdate.exportScreen.exportSuccessfullyToast.content": "你已经成功地导出了你的模组列表"
 }

@@ -1,7 +1,7 @@
 package com.leawsic.autoupdate.tool;
 
 import com.google.gson.JsonArray;
-import com.leawsic.autoupdate.data.ModInfo;
+import com.leawsic.autoupdate.data.mod.ModInfo;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 

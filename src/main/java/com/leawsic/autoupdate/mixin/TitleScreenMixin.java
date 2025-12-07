@@ -1,7 +1,8 @@
 package com.leawsic.autoupdate.mixin;
 
 import com.leawsic.autoupdate.AutoUpdate;
-import com.leawsic.autoupdate.render.ModUpdateScreen;
+import com.leawsic.autoupdate.data.config.Config;
+import com.leawsic.autoupdate.render.screen.ModUpdateScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -25,6 +26,23 @@ public class TitleScreenMixin extends Screen {
     }
     @Inject(at = @At("TAIL"),method = "init")
     private void init(CallbackInfo info){
+        if (Config.info!=null){
+            if (Config.info.replaceRealmsBtn){
+                replaceRealmsBtn();
+            }else {
+                createNewUpdateBtn();
+            }
+        }else {
+            AutoUpdate.LOGGER.warn("Config is null!");
+        }
+    }
+    @Unique
+    private void createNewUpdateBtn(){
+        addDrawableChild(ButtonWidget.builder(Text.of("U"),
+                button -> openModUpdateScreen(modUpdateScreenTitle)).dimensions(this.width / 2 + 104, (this.height / 4 + 48 + 72 + 12)-22, 20, 20).build());
+    }
+    @Unique
+    private void replaceRealmsBtn(){
         List<ButtonWidget> buttons=
                 this.children().stream().filter(element -> element instanceof ButtonWidget).map(element -> (ButtonWidget) element).toList();
         for (ButtonWidget button:buttons){
@@ -41,9 +59,7 @@ public class TitleScreenMixin extends Screen {
             }
         }
         if (!replaced){
-            AutoUpdate.LOGGER.warn("Can't replace realms button");
-            addDrawableChild(ButtonWidget.builder(Text.of("U"),
-                    button -> openModUpdateScreen(modUpdateScreenTitle)).dimensions(this.width / 2 + 104, (this.height / 4 + 48 + 72 + 12)-22, 20, 20).build());
+            AutoUpdate.LOGGER.error("Failed to replace Realms button");
         }
     }
     @Unique

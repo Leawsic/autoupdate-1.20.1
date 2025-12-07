@@ -3,14 +3,14 @@
 	"id": "autoupdate",
 	"version": "${version}",
 	"name": "AutoUpdate",
-	"description": "Automatically update mods based on a given mod list",
+	"description": "Automatically update mods based on a given mods list",
 	"authors": [
 		"Leawsic"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod",
-        "issues": "",
+		"homepage": "https://blog.leawsic.site",
+		"sources": "https://github.com/Leawsic/autoupdate-1.20.1",
+        "issues": "https://github.com/Leawsic/autoupdate-1.20.1/issues",
         "email": "3775717540@qq.com"
 	},
 	"license": "CC0-1.0",

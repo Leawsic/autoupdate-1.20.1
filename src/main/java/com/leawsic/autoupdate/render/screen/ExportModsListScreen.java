@@ -1,14 +1,18 @@
-package com.leawsic.autoupdate.render;
+package com.leawsic.autoupdate.render.screen;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.leawsic.autoupdate.AutoUpdate;
-import com.leawsic.autoupdate.data.*;
+import com.leawsic.autoupdate.data.TimeFormatter;
+import com.leawsic.autoupdate.data.config.Config;
+import com.leawsic.autoupdate.data.mod.ModInfo;
+import com.leawsic.autoupdate.data.mod.RemoteModList;
+import com.leawsic.autoupdate.render.ToastManager;
 import com.leawsic.autoupdate.tool.LocalModListManager;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.toast.SystemToast;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 
@@ -46,20 +50,20 @@ public class ExportModsListScreen extends Screen {
         ButtonWidget exportBtn=
                 ButtonWidget.builder(Text.translatable(AutoUpdate.MOD_ID+".exportScreen"+".exportListBtn"),button -> {
                     List<ModInfo> modInfos=LocalModListManager.getInstance().getModInfos();
-                    File modsListFile=new File(Config.getAutoupdateDir(),
-                            "modsList-%s.json".formatted(LocalDateTime.now().format(ATimeFormatter.LOCAL_DATE_TIME)));
+                    File modsListFile=new File(Config.getInstance().getAutoupdateDir(),
+                            "modsList-%s.json".formatted(LocalDateTime.now().format(TimeFormatter.LOCAL_DATE_TIME)));
                     String listVersion=textFieldWidget.getText();
 
                     if (Objects.equals(listVersion, "")){
-                        this.client.getToastManager().add(SystemToast.create(this.client,
-                                SystemToast.Type.PACK_LOAD_FAILURE,
-                                Text.translatable(AutoUpdate.MOD_ID+exportScreenTranslateKey+".emptyVersionToast"+
-                                        ".title"),Text.translatable(AutoUpdate.MOD_ID+exportScreenTranslateKey+".emptyVersionToast"+
-                                        ".content")));
+                        this.client.getToastManager().add(ToastManager.getToast(this.client,
+                                AutoUpdate.MOD_ID+exportScreenTranslateKey+".emptyVersionToast"));
                         AutoUpdate.LOGGER.error("Version is empty,export fail");
                     }else {
                         try {
                             writeToJson(gson,modsListFile,listVersion,modInfos);
+                            this.client.getToastManager().add(ToastManager.getToast(this.client,AutoUpdate.MOD_ID+exportScreenTranslateKey+".exportSuccessfullyToast"));
+                            AutoUpdate.LOGGER.info("Mods list exported successfully!");
+                            this.close();
                         } catch (IOException e) {
                             AutoUpdate.LOGGER.error(e.getMessage());
                             throw new RuntimeException(e);
@@ -75,7 +79,6 @@ public class ExportModsListScreen extends Screen {
         FileWriter writer=new FileWriter(file);
         writer.write(json);
         writer.close();
-        AutoUpdate.LOGGER.info("Mods list exported successfully!");
     }
 
     @Override
