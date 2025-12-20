@@ -5,7 +5,7 @@ import com.leawsic.autoupdate.data.mod.ModInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-public record UpdateCheckResult(boolean success, List<ModInfo> modsToUpdate,String version) {
+public record UpdateCheckResult(boolean success, List<ModInfo> modsToUpdate,String listVersion) {
 
     public static UpdateCheckResult success(List<ModInfo> modsToUpdate,String version) {
         return new UpdateCheckResult(true, modsToUpdate,version);

@@ -24,7 +24,7 @@ public class LocalModListManager {
         return INSTANCE;
     }
 
-    private void loadModInfos() {
+    void loadModInfos() {
         List<ModContainer> mods=
                 FabricLoader.getInstance().getAllMods().stream().filter(modContainer -> !modContainer.getMetadata().getType().equals("builtin")).toList();
         for (ModContainer mod:mods){

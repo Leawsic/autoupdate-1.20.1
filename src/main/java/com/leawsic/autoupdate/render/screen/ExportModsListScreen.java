@@ -57,7 +57,7 @@ public class ExportModsListScreen extends Screen {
                     if (Objects.equals(listVersion, "")){
                         this.client.getToastManager().add(ToastManager.getToast(this.client,
                                 AutoUpdate.MOD_ID+exportScreenTranslateKey+".emptyVersionToast"));
-                        AutoUpdate.LOGGER.error("Version is empty,export fail");
+                        AutoUpdate.LOGGER.warn("Version is empty,export fail");
                     }else {
                         try {
                             writeToJson(gson,modsListFile,listVersion,modInfos);

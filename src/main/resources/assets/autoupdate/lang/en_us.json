@@ -14,5 +14,35 @@
     "autoupdate.exportScreen.emptyVersionToast.title": "List version is empty",
     "autoupdate.exportScreen.emptyVersionToast.content": "The version of the mods list shouldn't be empty!",
     "autoupdate.exportScreen.exportSuccessfullyToast.title": "Mods List Exported Successfully",
-    "autoupdate.exportScreen.exportSuccessfullyToast.content": "You've successfully exported your mods list!"
+    "autoupdate.exportScreen.exportSuccessfullyToast.content": "You've successfully exported your mods list!",
+
+    "autoupdate.download.start": "Starting download of missing mods",
+    "autoupdate.download.success": "Mod download successful",
+    "autoupdate.download.failure": "Mod download failed",
+    "autoupdate.download.progress": "Download progress: %d/%d",
+    
+    "autoupdate.checkScreen.mainTitle": "AutoUpdate - Mod Updater",
+    "autoupdate.checkScreen.subtitle": "Easily manage your mod updates",
+    "autoupdate.checkScreen.checking": "Checking for updates...",
+    "autoupdate.checkScreen.autoDownloadEnabled": "✓ Auto-download enabled",
+    "autoupdate.checkScreen.autoDownloadDisabled": "⚠ Auto-download disabled",
+
+    "autoupdate.updateScreen.title": "Mods to Update (%s)",
+    "autoupdate.updateScreen.description": "Select mods to update (all selected by default)",
+    "autoupdate.updateScreen.updateButton": "Update %s/%s Selected Mods",
+    "autoupdate.updateScreen.updating": "Updating mods...",
+    "autoupdate.updateScreen.selectAll": "Select All",
+    "autoupdate.updateScreen.deselectAll": "Deselect All",
+    "autoupdate.updateScreen.backButton": "Back",
+    "autoupdate.updateScreen.selectionTitle": "Select Mods to Update",
+
+    "autoupdate.resultScreen.okButton": "OK",
+    "autoupdate.resultScreen.successTitle": "Update Complete",
+    "autoupdate.resultScreen.errorTitle": "Update Failed",
+    "autoupdate.resultScreen.successMessage": "Successfully updated %s mods",
+    "autoupdate.resultScreen.errorMessage": "Error occurred during mod update",
+    "autoupdate.resultScreen.restartHint": "Please restart the game to apply updates",
+    "autoupdate.resultScreen.backButton": "Back to Main Menu",
+    "autoupdate.resultScreen.quitButton": "Quit Game",
+    "autoupdate.resultScreen.actionHint": "Please choose your action"
 }

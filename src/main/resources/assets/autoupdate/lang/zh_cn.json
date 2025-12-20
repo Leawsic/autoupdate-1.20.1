@@ -4,7 +4,7 @@
     "autoupdate.checkScreen.backBtn": "返回主界面",
     "autoupdate.checkScreen.toExportBtn": "从本地生成模组列表",
     "autoupdate.checkScreen.needsUpdateToast.title": "你的模组需要更新！",
-    "autoupdate.checkScreen.needsUpdateToast.content": "请尽快从QQ群下载版本为: v%s 模组包或补丁！",
+    "autoupdate.checkScreen.needsUpdateToast.content": "请尽快从QQ群下载版本为: v%s 的模组包或补丁！",
     "autoupdate.checkScreen.noNeedToUpdateToast.title": "无需更新",
     "autoupdate.checkScreen.noNeedToUpdateToast.content": "你的模组暂时无需更新……",
     "autoupdate.checkScreen.failToGetModsListToast.title": "未能获取到模组列表",
@@ -14,5 +14,35 @@
     "autoupdate.exportScreen.emptyVersionToast.title": "列表版本为空",
     "autoupdate.exportScreen.emptyVersionToast.content": "导出模组列表的版本不能为空！",
     "autoupdate.exportScreen.exportSuccessfullyToast.title": "模组列表导出成功",
-    "autoupdate.exportScreen.exportSuccessfullyToast.content": "你已经成功地导出了你的模组列表"
+    "autoupdate.exportScreen.exportSuccessfullyToast.content": "你已经成功地导出了你的模组列表",
+
+    "autoupdate.download.start": "开始下载缺失模组",
+    "autoupdate.download.success": "模组下载成功",
+    "autoupdate.download.failure": "模组下载失败",
+    "autoupdate.download.progress": "下载进度: %d/%d",
+
+    "autoupdate.checkScreen.mainTitle": "AutoUpdate - 模组更新器",
+    "autoupdate.checkScreen.subtitle": "轻松管理您的模组更新",
+    "autoupdate.checkScreen.checking": "正在检查更新...",
+    "autoupdate.checkScreen.autoDownloadEnabled": "✓ 自动下载已启用",
+    "autoupdate.checkScreen.autoDownloadDisabled": "⚠ 自动下载已禁用",
+
+    "autoupdate.updateScreen.title": "待更新模组 (%s 个)",
+    "autoupdate.updateScreen.description": "选择要更新的模组（默认全选）",
+    "autoupdate.updateScreen.updateButton": "更新选中的 %s/%s 个模组",
+    "autoupdate.updateScreen.updating": "正在更新模组...",
+    "autoupdate.updateScreen.selectAll": "全选",
+    "autoupdate.updateScreen.deselectAll": "取消全选",
+    "autoupdate.updateScreen.backButton": "返回",
+    "autoupdate.updateScreen.selectionTitle": "选择要更新的模组",
+
+    "autoupdate.resultScreen.okButton": "确定",
+    "autoupdate.resultScreen.successTitle": "更新完成",
+    "autoupdate.resultScreen.errorTitle": "更新失败",
+    "autoupdate.resultScreen.successMessage": "成功更新了 %s 个模组",
+    "autoupdate.resultScreen.errorMessage": "模组更新过程中出现错误",
+    "autoupdate.resultScreen.restartHint": "请重启游戏以应用更新",
+    "autoupdate.resultScreen.backButton": "返回到主界面",
+    "autoupdate.resultScreen.quitButton": "退出游戏",
+    "autoupdate.resultScreen.actionHint": "请选择您的操作"
 }
