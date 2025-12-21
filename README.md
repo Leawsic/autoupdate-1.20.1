@@ -59,3 +59,5 @@ AutoUpdate 是一个为 Minecraft 1.20.1 设计的 Fabric 模组，它允许根�
 ```
 
 构建完成后，模组文件将生成在 `build/libs/` 目录中。
+## License
+本模组采用[CC0-1.0](LICENSE)开源许可
