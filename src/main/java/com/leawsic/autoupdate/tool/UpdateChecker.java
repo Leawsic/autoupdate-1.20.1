@@ -8,7 +8,9 @@ import com.leawsic.autoupdate.data.mod.ModInfo;
 import com.leawsic.autoupdate.data.mod.RemoteModList;
 import com.leawsic.autoupdate.render.ToastManager;
 import com.leawsic.autoupdate.render.screen.ModUpdateSelectionScreen;
+import com.leawsic.autoupdate.render.screen.UpdateResultScreen;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.Text;
 
 import java.io.IOException;
@@ -18,11 +20,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class UpdateChecker {
-    private static final String MODRINTH_API = "https://api.modrinth.com/v2/project/%s/version?loaders=[\"fabric\"]&game_versions=[\"%s\"]";
-    private static final String CURSEFORGE_API = "https://api.curseforge.com/v1/mods/%s/files";
 
     // URL to fetch the remote mod list JSON from
     private static final String REMOTE_MOD_LIST_URL = Config.getInstance().getConfigInfoFromFile(null).modListUrl;
@@ -90,7 +89,7 @@ public class UpdateChecker {
         }
     }
     /**
-     * 检查更新并自动下载缺失模组
+     * 检查更新并自动下载缺失模组（非阻塞版本）
      */
     public static CompletableFuture<UpdateCheckResult> checkForUpdatesWithDownload() {
         return CompletableFuture.supplyAsync(() -> {
@@ -111,27 +110,17 @@ public class UpdateChecker {
                         }
                     }
 
-                    // 如果配置了自动下载缺失模组，则下载
+                    // 如果配置了自动下载缺失模组，则返回下载中状态
                     if (Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod && !missingMods.isEmpty()) {
                         AutoUpdate.LOGGER.info("Auto-downloading {} missing mods", missingMods.size());
-                        ModDownloadManager downloadManager = new ModDownloadManager();
-                        
-                        CompletableFuture<Boolean> downloadFuture = downloadManager.downloadMissingMods(missingMods);
-                        boolean downloadSuccess = downloadFuture.get(); // 等待下载完成
-                        
-                        if (downloadSuccess) {
-                            AutoUpdate.LOGGER.info("Auto-download completed successfully");
-                            // 重新加载本地模组列表以反映新下载的模组
-                            LocalModListManager.getInstance().loadModInfos();
-                        } else {
-                            AutoUpdate.LOGGER.warn("Auto-download completed with some failures");
-                        }
+                        return UpdateCheckResult.downloading(missingMods, modsToUpdate, remoteModList.getPackVersion());
                     }
                 } else {
                     return UpdateCheckResult.failure();
                 }
 
-                return UpdateCheckResult.success(modsToUpdate, remoteModList.getPackVersion());
+                // 创建包含下载结果的更新检查结果
+                return UpdateCheckResult.successWithDownload(modsToUpdate, remoteModList.getPackVersion(), null);
             } catch (Exception e) {
                 AutoUpdate.LOGGER.error("Error during update check with download: {}", e.getMessage());
                 return UpdateCheckResult.failure();
@@ -139,50 +128,119 @@ public class UpdateChecker {
         });
     }
 
-    public static void checkUpdate(MinecraftClient client, String updateScreenTranslateKey) {
-        try {
-            UpdateCheckResult result = UpdateChecker.checkForUpdates().get();
-            if (result.success() && !result.modsToUpdate().isEmpty()) {
-                // 打开模组更新选择界面
-                client.setScreen(new ModUpdateSelectionScreen(
-                        Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".selectionTitle"),
-                        client.currentScreen,
-                        result.modsToUpdate()
-                ));
-            } else if (result.modsToUpdate().isEmpty() && result.success()) {
-                client.getToastManager().add(ToastManager.getToast(client, AutoUpdate.MOD_ID + updateScreenTranslateKey + ".noNeedToUpdateToast"));
-            } else {
-                client.getToastManager().add(ToastManager.getToast(client,
-                        AutoUpdate.MOD_ID + updateScreenTranslateKey + ".failToGetModsListToast"));
-                AutoUpdate.LOGGER.warn("Fail to check need-updating mods");
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            AutoUpdate.LOGGER.warn("Fail to get the result of update-checker {}", e.getMessage());
-        }
-    }
     /**
-     * 带下载功能的更新检查
+     * 带下载功能的更新检查（非阻塞版本）
      */
     public static void checkUpdateWithDownload(MinecraftClient client, String updateScreenTranslateKey) {
-        try {
-            UpdateCheckResult result = UpdateChecker.checkForUpdatesWithDownload().get();
-            if (result.success() && !result.modsToUpdate().isEmpty()) {
-                // 打开模组更新选择界面
-                client.setScreen(new ModUpdateSelectionScreen(
-                        Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".selectionTitle"),
-                        client.currentScreen,
-                        result.modsToUpdate()
-                ));
-            } else if (result.modsToUpdate().isEmpty() && result.success()) {
-                client.getToastManager().add(ToastManager.getToast(client, 
-                        AutoUpdate.MOD_ID + updateScreenTranslateKey + ".noNeedToUpdateToast"));
-            } else {
-                client.getToastManager().add(ToastManager.getToast(client,
-                        AutoUpdate.MOD_ID + updateScreenTranslateKey + ".failToGetModsListToast"));
-                AutoUpdate.LOGGER.warn("Failed to check for updates");
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            AutoUpdate.LOGGER.warn("Failed to get update check result: {}", e.getMessage());
-        }
+        // 显示检查更新中的Toast（使用简单的SystemToast）
+        client.getToastManager().add(SystemToast.create(client, SystemToast.Type.NARRATOR_TOGGLE, 
+                Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".checking"), Text.empty()));
+        
+        // 非阻塞执行更新检查
+        UpdateChecker.checkForUpdatesWithDownload()
+                .thenAccept(result -> client.execute(() -> {
+                    if (result.success()) {
+                        if (result.isDownloading()) {
+                            // 如果有模组正在下载，启动下载并等待完成
+                            startDownloadAndShowResult(client, result.missingMods(), result.modsToUpdate(), updateScreenTranslateKey);
+                        } else if (!result.modsToUpdate().isEmpty()) {
+                            // 如果有需要更新的模组，打开模组更新选择界面
+                            client.setScreen(new ModUpdateSelectionScreen(
+                                    Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".selectionTitle"),
+                                    client.currentScreen,
+                                    result.modsToUpdate()
+                            ));
+                        } else {
+                            // 如果没有需要更新的模组，显示完成Toast
+                            client.getToastManager().add(ToastManager.getToast(client, 
+                                    AutoUpdate.MOD_ID + updateScreenTranslateKey + ".noNeedToUpdateToast"));
+                        }
+                    } else {
+                        client.getToastManager().add(ToastManager.getToast(client,
+                                AutoUpdate.MOD_ID + updateScreenTranslateKey + ".failToGetModsListToast"));
+                        AutoUpdate.LOGGER.warn("Failed to check for updates");
+                    }
+                }))
+                .exceptionally(e -> {
+                    AutoUpdate.LOGGER.warn("Failed to get update check result: {}", e.getMessage());
+                    client.execute(() -> client.getToastManager().add(ToastManager.getToast(client,
+                            AutoUpdate.MOD_ID + updateScreenTranslateKey + ".failToGetModsListToast")));
+                    return null;
+                });
+    }
+
+    /**
+     * 启动下载并显示结果界面
+     */
+    private static void startDownloadAndShowResult(MinecraftClient client, List<ModInfo> missingMods, List<ModInfo> modsToUpdate, String updateScreenTranslateKey) {
+        // 在开始下载前显示Toast提示
+        client.getToastManager().add(ToastManager.getToast(client, 
+                AutoUpdate.MOD_ID + ".download.autoDownloadStarted"));
+        
+        ModDownloadManager downloadManager = new ModDownloadManager();
+        
+        // 启动下载并等待完成
+        downloadManager.downloadMissingMods(missingMods)
+                .thenAccept(downloadResult -> client.execute(() -> {
+                    // 下载完成后显示结果界面
+                    boolean success = downloadResult.overallSuccess();
+                    int downloadedCount = downloadResult.successCount();
+                    
+                    // 重新加载本地模组列表以反映新下载的模组
+                    LocalModListManager.getInstance().loadModInfos();
+                    
+                    // 显示下载结果界面
+                    client.setScreen(new UpdateResultScreen(
+                            Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.title"),
+                            client.currentScreen,
+                            downloadedCount,
+                            success
+                    ));
+                }))
+                .exceptionally(e -> {
+                    AutoUpdate.LOGGER.warn("Download failed: {}", e.getMessage());
+                    client.execute(() -> {
+                        // 下载失败时也显示结果界面
+                        client.setScreen(new UpdateResultScreen(
+                                Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.title"),
+                                client.currentScreen,
+                                0,
+                                false
+                        ));
+                    });
+                    return null;
+                });
+    }
+
+    public static void checkUpdate(MinecraftClient client, String updateScreenTranslateKey) {
+        // 显示检查更新中的Toast（使用简单的SystemToast）
+        client.getToastManager().add(SystemToast.create(client, SystemToast.Type.NARRATOR_TOGGLE,
+                Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".checking"), Text.empty()));
+        
+        // 非阻塞执行更新检查
+        UpdateChecker.checkForUpdates()
+                .thenAccept(result -> client.execute(() -> {
+                    if (result.success() && !result.modsToUpdate().isEmpty()) {
+                        // 打开模组更新选择界面
+                        client.setScreen(new ModUpdateSelectionScreen(
+                                Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".selectionTitle"),
+                                client.currentScreen,
+                                result.modsToUpdate()
+                        ));
+                    } else if (result.modsToUpdate().isEmpty() && result.success()) {
+                        client.getToastManager().add(ToastManager.getToast(client, 
+                                AutoUpdate.MOD_ID + updateScreenTranslateKey + ".noNeedToUpdateToast"));
+                    } else {
+                        client.getToastManager().add(ToastManager.getToast(client,
+                                AutoUpdate.MOD_ID + updateScreenTranslateKey + ".failToGetModsListToast"));
+                        AutoUpdate.LOGGER.warn("Fail to check need-updating mods");
+                    }
+                }))
+                .exceptionally(e -> {
+                    AutoUpdate.LOGGER.warn("Fail to get the result of update-checker {}", e.getMessage());
+                    client.execute(() -> client.getToastManager().add(ToastManager.getToast(client,
+                            AutoUpdate.MOD_ID + updateScreenTranslateKey + ".failToGetModsListToast")));
+                    return null;
+                });
     }
 }
