@@ -3,8 +3,11 @@ package com.leawsic.autoupdate.render.screen;
 import com.leawsic.autoupdate.AutoUpdate;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
+
+import java.util.Objects;
 
 public class UpdateResultScreen extends Screen {
     private final Screen parentScreen;
@@ -30,10 +33,10 @@ public class UpdateResultScreen extends Screen {
         int startX = (this.width - totalWidth) / 2;
         int buttonY = this.height / 2 + 40;
 
-        // 返回到主界面按钮
+        // 返回到主界面按钮 - 修正为智能返回逻辑
         ButtonWidget backButton = ButtonWidget.builder(
                 Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.backButton"),
-                button -> this.close()
+                button -> this.backToMainMenu()
         ).dimensions(startX, buttonY, buttonWidth, buttonHeight).build();
         this.addDrawableChild(backButton);
 
@@ -47,6 +50,16 @@ public class UpdateResultScreen extends Screen {
                 }
         ).dimensions(startX + buttonWidth + buttonSpacing, buttonY, buttonWidth, buttonHeight).build();
         this.addDrawableChild(quitButton);
+    }
+
+    private void backToMainMenu() {
+        if (this.client != null) {
+            if (parentScreen!=null && !(parentScreen instanceof TitleScreen)) {
+                this.client.setScreen(new TitleScreen());
+            } else {
+                this.close();
+            }
+        }
     }
 
     @Override
@@ -115,8 +128,6 @@ public class UpdateResultScreen extends Screen {
 
     @Override
     public void close() {
-        if (this.client != null) {
-            this.client.setScreen(parentScreen);
-        }
+        this.client.setScreen(Objects.requireNonNullElseGet(parentScreen, TitleScreen::new));
     }
 }

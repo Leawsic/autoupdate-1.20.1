@@ -21,7 +21,7 @@
     "autoupdate.exportScreen.exportSuccessfullyToast.title": "模组列表导出成功",
     "autoupdate.exportScreen.exportSuccessfullyToast.content": "您已成功导出模组列表！",
 
-    "autoupdate.download.autoDownloadStarted.title": "自动下载开始",
+    "autoupdate.download.autoDownloadStarted.title": "自动下载开始，请稍等",
     "autoupdate.download.autoDownloadStarted.content": "开始自动下载缺失模组",
     "autoupdate.download.autoDownloadCompleted.title": "自动下载完成",
     "autoupdate.download.autoDownloadCompleted.content": "成功下载了 %d 个缺失模组",

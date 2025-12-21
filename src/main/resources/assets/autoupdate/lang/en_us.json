@@ -21,7 +21,7 @@
     "autoupdate.exportScreen.exportSuccessfullyToast.title": "Mods List Exported Successfully",
     "autoupdate.exportScreen.exportSuccessfullyToast.content": "You've successfully exported your mods list!",
 
-    "autoupdate.download.autoDownloadStarted.title": "Auto-download Started",
+    "autoupdate.download.autoDownloadStarted.title": "Auto-download Started, plz Wait",
     "autoupdate.download.autoDownloadStarted.content": "Starting auto-download of missing mods",
     "autoupdate.download.autoDownloadCompleted.title": "Auto Download Completed",
     "autoupdate.download.autoDownloadCompleted.content": "Successfully downloaded %d missing mods",
