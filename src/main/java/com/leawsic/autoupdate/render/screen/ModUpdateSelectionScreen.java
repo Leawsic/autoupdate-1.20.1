@@ -2,6 +2,7 @@ package com.leawsic.autoupdate.render.screen;
 
 import com.leawsic.autoupdate.AutoUpdate;
 import com.leawsic.autoupdate.data.mod.ModInfo;
+import com.leawsic.autoupdate.render.ToastManager;
 import com.leawsic.autoupdate.render.widget.ModUpdateListWidget;
 import com.leawsic.autoupdate.tool.ModDownloadManager;
 import net.minecraft.client.gui.DrawContext;
@@ -124,7 +125,7 @@ public class ModUpdateSelectionScreen extends Screen {
                 this.width / 2, titleY, 0xFFFFFF);
 
         // 说明文字 - 动态位置和自适应文本
-        String description = modsToUpdate.size() > 0 ? 
+        String description = !modsToUpdate.isEmpty() ?
                 String.format("已发现 %d 个模组需要更新，请选择要更新的模组", modsToUpdate.size()) :
                 "没有发现需要更新的模组";
         context.drawCenteredTextWithShadow(this.textRenderer,
@@ -172,7 +173,7 @@ public class ModUpdateSelectionScreen extends Screen {
         if (selectedMods.isEmpty()) {
             return;
         }
-
+    
         // 禁用按钮防止重复点击
         this.updateButton.active = false;
         this.selectAllButton.active = false;
@@ -180,34 +181,45 @@ public class ModUpdateSelectionScreen extends Screen {
         
         // 更新按钮文本为"正在更新..."
         this.updateButton.setMessage(Text.translatable(AutoUpdate.MOD_ID + ".updateScreen.updating"));
-
+        
+        // 在开始下载前显示Toast提示
+        this.client.getToastManager().add(ToastManager.getToast(this.client, 
+                AutoUpdate.MOD_ID + ".download.autoDownloadStarted"));
+    
         // 开始下载选中的模组
         CompletableFuture.supplyAsync(() -> {
             ModDownloadManager downloadManager = new ModDownloadManager();
             return downloadManager.downloadMissingMods(selectedMods);
-        }).thenAccept(downloadFuture -> {
-            downloadFuture.thenAccept(success -> {
-                this.client.execute(() -> {
-                    if (success) {
-                        // 下载成功，显示成功消息并返回
-                        this.client.setScreen(new UpdateResultScreen(
-                                Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.successTitle"),
-                                this.parentScreen,
-                                selectedMods.size(),
-                                true
-                        ));
-                    } else {
-                        // 下载失败，显示错误消息
-                        this.client.setScreen(new UpdateResultScreen(
-                                Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.errorTitle"),
-                                this.parentScreen,
-                                selectedMods.size(),
-                                false
-                        ));
-                    }
-                });
-            });
-        });
+        }).thenAccept(downloadFuture -> downloadFuture.thenAccept(downloadResult -> this.client.execute(() -> {
+            if (downloadResult.overallSuccess() && downloadResult.successCount() > 0) {
+                // 下载成功且有模组被下载，显示成功消息并返回
+                this.client.setScreen(new UpdateResultScreen(
+                        Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.title"),
+                        this.parentScreen,
+                        downloadResult.successCount(),
+                        true
+                ));
+
+                // 显示下载完成Toast
+                this.client.getToastManager().add(ToastManager.getToastWithArgs(this.client,
+                        AutoUpdate.MOD_ID + ".download.autoDownloadCompleted", downloadResult.successCount()));
+            } else if (downloadResult.successCount() == 0) {
+                // 没有模组被成功下载，只显示Toast提示
+                this.client.getToastManager().add(ToastManager.getToast(this.client,
+                        AutoUpdate.MOD_ID + ".download.noModsDownloaded"));
+
+                // 返回上级界面
+                this.client.setScreen(this.parentScreen);
+            } else {
+                // 下载失败，显示错误消息
+                this.client.setScreen(new UpdateResultScreen(
+                        Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.title"),
+                        this.parentScreen,
+                        downloadResult.successCount(),
+                        false
+                ));
+            }
+        })));
     }
 
     @Override

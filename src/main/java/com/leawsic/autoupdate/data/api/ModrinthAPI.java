@@ -106,7 +106,7 @@ public class ModrinthAPI {
      * 获取模组版本列表
      */
     public JsonArray getModVersions(String projectIdOrSlug, String gameVersion, String loader) throws IOException {
-        // 修复API端点：使用正确的/version端点（单数）
+        // 使用正确的/version端点
         HttpUrl.Builder urlBuilder = HttpUrl.parse(baseUrl + "project/" + projectIdOrSlug + "/version").newBuilder();
         
         if (gameVersion != null && !gameVersion.isEmpty()) {
@@ -243,7 +243,7 @@ public class ModrinthAPI {
 
             // 获取版本列表
             JsonArray versions = getModVersions(modId, gameVersion, loader);
-            if (versions == null || versions.size() == 0) {
+            if (versions == null || versions.isEmpty()) {
                 AutoUpdate.LOGGER.warn("No compatible versions found for mod: {}", modId);
                 return false;
             }
@@ -251,7 +251,7 @@ public class ModrinthAPI {
             // 获取最新版本（第一个通常是最新的）
             JsonObject latestVersion = versions.get(0).getAsJsonObject();
             JsonArray files = latestVersion.getAsJsonArray("files");
-            if (files == null || files.size() == 0) {
+            if (files == null || files.isEmpty()) {
                 AutoUpdate.LOGGER.warn("No files found for mod versions: {}", modId);
                 return false;
             }

@@ -36,15 +36,16 @@ public class ModDownloadManager {
     /**
      * 下载缺失的模组列表
      */
-    public CompletableFuture<Boolean> downloadMissingMods(List<ModInfo> missingMods) {
+    public CompletableFuture<DownloadResult> downloadMissingMods(List<ModInfo> missingMods) {
         return CompletableFuture.supplyAsync(() -> {
             if (missingMods == null || missingMods.isEmpty()) {
                 AutoUpdate.LOGGER.info("No missing mods to download");
-                return true;
+                return new DownloadResult(0, 0, true);
             }
 
             AutoUpdate.LOGGER.info("Starting download of {} missing mods", missingMods.size());
             int successCount = 0;
+            int totalCount = missingMods.size();
 
             for (ModInfo mod : missingMods) {
                 try {
@@ -64,9 +65,10 @@ public class ModDownloadManager {
                 }
             }
 
+            boolean overallSuccess = successCount > 0;
             AutoUpdate.LOGGER.info("Download completed: {}/{} mods downloaded successfully", 
-                    successCount, missingMods.size());
-            return successCount > 0;
+                    successCount, totalCount);
+            return new DownloadResult(successCount, totalCount, overallSuccess);
         });
     }
 
@@ -121,20 +123,8 @@ public class ModDownloadManager {
     }
 
     /**
-     * 检查模组目录是否存在指定模组文件
-     */
-    public boolean isModFileExists(String modId) {
-        if (modsDir.exists() && modsDir.isDirectory()) {
-            File[] modFiles = modsDir.listFiles((dir, name) -> name.endsWith(".jar"));
-            if (modFiles != null) {
-                for (File modFile : modFiles) {
-                    // 这里可以添加更精确的文件名匹配逻辑
-                    if (modFile.getName().toLowerCase().contains(modId.toLowerCase())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+         * 下载结果类
+         */
+        public record DownloadResult(int successCount, int totalCount, boolean overallSuccess) {
     }
 }
