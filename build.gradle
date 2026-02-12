@@ -30,6 +30,9 @@ dependencies {
     //okhttp
     modImplementation "com.squareup.okhttp3:okhttp:4.12.0"
     include "com.squareup.okhttp3:okhttp:4.12.0"
+
+    //commons codec
+    implementation 'commons-codec:commons-codec:1.16.0'
 }
 
 processResources {

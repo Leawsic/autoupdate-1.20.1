@@ -2,7 +2,7 @@ package com.leawsic.autoupdate.render.screen;
 
 import com.leawsic.autoupdate.AutoUpdate;
 import com.leawsic.autoupdate.data.config.Config;
-import com.leawsic.autoupdate.tool.UpdateChecker;
+import com.leawsic.autoupdate.utils.UpdateChecker;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -19,6 +19,7 @@ public class ModUpdateScreen extends Screen {
 
     @Override
     protected void init() {
+        assert client!=null;
         // 检查更新按钮（带自动下载）- 更美观的设计
         ButtonWidget checkBtn = ButtonWidget.builder(title, button -> {
             if (Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod) {

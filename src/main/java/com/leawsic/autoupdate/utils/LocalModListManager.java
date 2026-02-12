@@ -1,4 +1,4 @@
-package com.leawsic.autoupdate.tool;
+package com.leawsic.autoupdate.utils;
 
 import com.google.gson.JsonArray;
 import com.leawsic.autoupdate.data.mod.ModInfo;
@@ -10,17 +10,18 @@ import java.util.List;
 import java.util.Objects;
 
 public class LocalModListManager {
-    private static LocalModListManager INSTANCE;
+    private static final LocalModListManager INSTANCE=new LocalModListManager();
     private final List<ModInfo> modInfos;
 
-    private LocalModListManager(){
+    private LocalModListManager() {
         modInfos =new ArrayList<>();
         loadModInfos();
     }
 
-    public static LocalModListManager getInstance(){
-        if (INSTANCE==null)
-            INSTANCE=new LocalModListManager();
+    public static LocalModListManager getInstance() {
+        if (INSTANCE==null) {
+            throw new NullPointerException("Config INSTANCE not initialized yet");
+        }
         return INSTANCE;
     }
 

@@ -4,7 +4,7 @@ import com.leawsic.autoupdate.AutoUpdate;
 import com.leawsic.autoupdate.data.mod.ModInfo;
 import com.leawsic.autoupdate.render.ToastManager;
 import com.leawsic.autoupdate.render.widget.ModUpdateListWidget;
-import com.leawsic.autoupdate.tool.ModDownloadManager;
+import com.leawsic.autoupdate.utils.ModDownloadManager;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -40,7 +40,7 @@ public class ModUpdateSelectionScreen extends Screen {
         super.init();
     
         // 计算最小安全边距
-        int minMargin = 10;
+        int leftButtonX = 10;
         int buttonWidth = 90;
         int buttonHeight = 25;
         int buttonSpacing = 10;
@@ -75,7 +75,6 @@ public class ModUpdateSelectionScreen extends Screen {
         this.addDrawableChild(this.updateButton);
     
         // 全选按钮 - 动态位置
-        int leftButtonX = minMargin;
         this.selectAllButton = ButtonWidget.builder(
                 Text.translatable(AutoUpdate.MOD_ID + ".updateScreen.selectAll"),
                 button -> {
@@ -99,7 +98,7 @@ public class ModUpdateSelectionScreen extends Screen {
         this.addDrawableChild(this.deselectAllButton);
     
         // 返回按钮 - 动态位置
-        int backButtonX = Math.max(this.width - buttonWidth - minMargin, deselectButtonX + buttonWidth + buttonSpacing);
+        int backButtonX = Math.max(this.width - buttonWidth - leftButtonX, deselectButtonX + buttonWidth + buttonSpacing);
         ButtonWidget backButton = ButtonWidget.builder(
                 Text.translatable(AutoUpdate.MOD_ID + ".updateScreen.backButton"),
                 button -> this.close()
@@ -183,6 +182,7 @@ public class ModUpdateSelectionScreen extends Screen {
         this.updateButton.setMessage(Text.translatable(AutoUpdate.MOD_ID + ".updateScreen.updating"));
         
         // 在开始下载前显示Toast提示
+        assert client!=null;
         this.client.getToastManager().add(ToastManager.getToast(this.client, 
                 AutoUpdate.MOD_ID + ".download.autoDownloadStarted"));
     

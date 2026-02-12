@@ -2,7 +2,7 @@ package com.leawsic.autoupdate;
 
 import com.leawsic.autoupdate.data.config.Config;
 import com.leawsic.autoupdate.render.screen.ModUpdateScreen;
-import com.leawsic.autoupdate.tool.UpdateChecker;
+import com.leawsic.autoupdate.utils.UpdateChecker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;

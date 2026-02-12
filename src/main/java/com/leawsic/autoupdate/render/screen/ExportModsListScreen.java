@@ -8,7 +8,7 @@ import com.leawsic.autoupdate.data.config.Config;
 import com.leawsic.autoupdate.data.mod.ModInfo;
 import com.leawsic.autoupdate.data.mod.RemoteModList;
 import com.leawsic.autoupdate.render.ToastManager;
-import com.leawsic.autoupdate.tool.LocalModListManager;
+import com.leawsic.autoupdate.utils.LocalModListManager;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -54,6 +54,7 @@ public class ExportModsListScreen extends Screen {
                             "modsList-%s.json".formatted(LocalDateTime.now().format(TimeFormatter.LOCAL_DATE_TIME)));
                     String listVersion=textFieldWidget.getText();
 
+                    assert client!=null;
                     if (Objects.equals(listVersion, "")){
                         this.client.getToastManager().add(ToastManager.getToast(this.client,
                                 AutoUpdate.MOD_ID+exportScreenTranslateKey+".emptyVersionToast"));

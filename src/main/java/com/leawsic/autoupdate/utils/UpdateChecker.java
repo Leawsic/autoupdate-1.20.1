@@ -1,4 +1,4 @@
-package com.leawsic.autoupdate.tool;
+package com.leawsic.autoupdate.utils;
 
 import com.google.gson.Gson;
 import com.leawsic.autoupdate.AutoUpdate;
@@ -188,7 +188,7 @@ public class UpdateChecker {
                     
                     // 重新加载本地模组列表以反映新下载的模组
                     LocalModListManager.getInstance().loadModInfos();
-                    
+
                     // 显示下载结果界面
                     client.setScreen(new UpdateResultScreen(
                             Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.title"),

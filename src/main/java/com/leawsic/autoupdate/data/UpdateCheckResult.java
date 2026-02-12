@@ -1,7 +1,7 @@
 package com.leawsic.autoupdate.data;
 
 import com.leawsic.autoupdate.data.mod.ModInfo;
-import com.leawsic.autoupdate.tool.ModDownloadManager.DownloadResult;
+import com.leawsic.autoupdate.utils.ModDownloadManager.DownloadResult;
 
 import java.util.ArrayList;
 import java.util.List;

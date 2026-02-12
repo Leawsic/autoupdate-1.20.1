@@ -10,10 +10,12 @@ public class Config {
     public static ConfigInfo info=null;
     private static File autoupdateDir=null;
     public static final String CONFIG_FILE_NAME="config.json";
-    private static Config INSTANCE;
+    private static final Config INSTANCE=new Config();
     private Config(){}
     public static Config getInstance(){
-        if (INSTANCE==null) INSTANCE=new Config();
+        if (INSTANCE==null) {
+            throw new NullPointerException("Config INSTANCE not initialized yet");
+        }
         return INSTANCE;
     }
 
