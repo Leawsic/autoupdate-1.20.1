@@ -5,9 +5,11 @@ import com.leawsic.autoupdate.AutoUpdate;
 import com.leawsic.autoupdate.utils.HashCodeGenerator;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.ModOrigin;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class ModInfo {
     private final String id;
@@ -20,7 +22,7 @@ public class ModInfo {
         this.id=metadata.getId();
         this.name=metadata.getName();
         this.version=metadata.getVersion().getFriendlyString();
-        this.sha1=getHashCode(modContainer);
+        this.sha1= Objects.requireNonNull(getHashCode(modContainer));
     }
     public ModInfo(String id, String name, String version, String sha1){
         this.id=id;
@@ -29,6 +31,7 @@ public class ModInfo {
         this.sha1 = sha1;
     }
     private String getHashCode(ModContainer container) {
+        if (container.getOrigin().getKind()== ModOrigin.Kind.NESTED) return "";
         for (Path path:container.getOrigin().getPaths()){
             if (path.toString().endsWith(".jar")){
                 try {
