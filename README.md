@@ -47,6 +47,7 @@ AutoUpdate 是一个为 Minecraft 1.20.1 设计的 Fabric 模组，它允许根�
 - [x] 支持自动从网络(主要为Modrinth)下载缺失模组
 - [x] 修复 Modrinth API 调用问题
 - [x] 实现响应式界面布局
+- [ ] 支持自定义导出模组列表内容
 
 ## 构建方法
 
