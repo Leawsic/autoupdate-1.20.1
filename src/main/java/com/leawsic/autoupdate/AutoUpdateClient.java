@@ -24,7 +24,7 @@ public class AutoUpdateClient implements ClientModInitializer {
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public void reload(ResourceManager manager) {
-                if (!reminded) {
+                if (!reminded && Config.getInstance().getConfigInfoFromFile(null).startWithCheck) {
                     // 根据配置选择正确的检查更新方法
                     if (Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod) {
                         UpdateChecker.checkUpdateWithDownload(net.minecraft.client.MinecraftClient.getInstance(), ModUpdateScreen.updateScreenTranslateKey);

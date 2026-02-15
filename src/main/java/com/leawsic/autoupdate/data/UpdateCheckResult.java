@@ -6,27 +6,23 @@ import com.leawsic.autoupdate.utils.ModDownloadManager.DownloadResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public record UpdateCheckResult(boolean success, List<ModInfo> modsToUpdate, String packVersion, 
+public record UpdateCheckResult(boolean success, String packVersion,
                                DownloadResult downloadResult, boolean downloading, List<ModInfo> missingMods) {
 
-    public static UpdateCheckResult success(List<ModInfo> modsToUpdate, String packVersion) {
-        return new UpdateCheckResult(true, modsToUpdate, packVersion, null, false, new ArrayList<>());
+    public static UpdateCheckResult success(String packVersion,List<ModInfo> missingMods) {
+        return new UpdateCheckResult(true, packVersion, null, false, missingMods);
     }
 
-    public static UpdateCheckResult successWithDownload(List<ModInfo> modsToUpdate, String packVersion, DownloadResult downloadResult) {
-        return new UpdateCheckResult(true, modsToUpdate, packVersion, downloadResult, false, new ArrayList<>());
+    public static UpdateCheckResult successWithNoNeedToDownload(String packVersion, DownloadResult downloadResult) {
+        return new UpdateCheckResult(true, packVersion, downloadResult, false, new ArrayList<>());
     }
 
-    public static UpdateCheckResult downloading(List<ModInfo> missingMods, List<ModInfo> modsToUpdate, String packVersion) {
-        return new UpdateCheckResult(true, modsToUpdate, packVersion, null, true, missingMods);
+    public static UpdateCheckResult downloading(List<ModInfo> missingMods, String packVersion) {
+        return new UpdateCheckResult(true, packVersion, null, true, missingMods);
     }
 
     public static UpdateCheckResult failure() {
-        return new UpdateCheckResult(false, new ArrayList<>(), "", null, false, new ArrayList<>());
-    }
-
-    public DownloadResult getDownloadResult() {
-        return downloadResult;
+        return new UpdateCheckResult(false, "", null, false, new ArrayList<>());
     }
 
     public boolean isDownloading() {

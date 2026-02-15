@@ -41,6 +41,7 @@ AutoUpdate 是一个为 Minecraft 1.20.1 设计的 Fabric 模组，它允许根�
 - `mod_list_url`: 远程模组列表 JSON 文件的 URL
 - `replace_realms_button`: 是否替换 Realms 按钮（默认：false，即为在游戏主界面添加`U`字按钮）
 - `auto_download_missing_mod`: 是否自动下载缺失的模组（默认：false）
+- `start_with_check`: 是否启动游戏时就自动检查更新（默认：true）
 
 ## TODO
 - [x] 支持展示待更新模组列表

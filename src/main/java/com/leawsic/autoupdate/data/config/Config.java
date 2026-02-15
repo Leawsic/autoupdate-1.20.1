@@ -63,6 +63,7 @@ public class Config {
             configFile=new File(autoupdateDir,CONFIG_FILE_NAME);
         }
         try {
+            // 直接使用Gson解析文件，如果文件中没有出现ConfigInfo中定义的argument，则会自动以Java的默认值补上 如 null false
             ConfigInfo configInfo=new GsonBuilder().setPrettyPrinting().create().fromJson(new FileReader(configFile),ConfigInfo.class);
             writeConfigInfoToFile(configInfo,configFile);
             return configInfo;

@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,43 +27,15 @@ public class UpdateChecker {
     // URL to fetch the remote mod list JSON from
     private static final String REMOTE_MOD_LIST_URL = Config.getInstance().getConfigInfoFromFile(null).modListUrl;
 
-    public UpdateChecker() {}
-
     /**
      * Fetch remote mod list and compare with local mods to find updates
      */
     private static CompletableFuture<UpdateCheckResult> checkForUpdates() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Fetch the remote mod list
-                RemoteModList remoteModList = fetchRemoteModList();
-
-                // Map to store mods that need updates
-                List<ModInfo> modsToUpdate=new ArrayList<>();
-
-                //todo 完善更新逻辑--支持更多更新判断模式 目前只是比较: 是否存在 & 版本是否相同
-                if (remoteModList != null) {
-                    for (ModInfo remoteMod : remoteModList.getModInfos()) {
-                        ModInfo localMods = LocalModListManager.getInstance().getModById(remoteMod.getId());
-
-                        // If mod exists locally and versions don't match, mark for update
-                        if (localMods != null && !localMods.getVersion().equals(remoteMod.getVersion())) {
-                            modsToUpdate.add(remoteMod);
-                        }
-                        // If mod doesn't exist locally, mark for download
-                        else if (localMods == null) {
-                            modsToUpdate.add(remoteMod);
-                        }
-                    }
-                }else {
-                    return UpdateCheckResult.failure();
-                }
-
-                return UpdateCheckResult.success(modsToUpdate,remoteModList.getPackVersion());
-            } catch (Exception e){
-                AutoUpdate.LOGGER.error("{}", e.getMessage());
+        return compareRemoteWithLocal().thenApply(comparisonResult -> {
+            if (!comparisonResult.success){
                 return UpdateCheckResult.failure();
             }
+            return UpdateCheckResult.success(comparisonResult.packVersion,comparisonResult.missingMods);
         });
     }
 
@@ -89,50 +62,26 @@ public class UpdateChecker {
         }
     }
     /**
-     * 检查更新并自动下载缺失模组（非阻塞版本）
+     * 检查更新并自动下载缺失模组的Future方法
      */
-    public static CompletableFuture<UpdateCheckResult> checkForUpdatesWithDownload() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // 获取远程模组列表
-                RemoteModList remoteModList = fetchRemoteModList();
-                List<ModInfo> modsToUpdate = new ArrayList<>();
-                List<ModInfo> missingMods = new ArrayList<>();
-
-                if (remoteModList != null) {
-                    for (ModInfo remoteMod : remoteModList.getModInfos()) {
-                        ModInfo localMod = LocalModListManager.getInstance().getModById(remoteMod.getId());
-
-                        if (localMod != null && !localMod.getVersion().equals(remoteMod.getVersion())) {
-                            modsToUpdate.add(remoteMod);
-                        } else if (localMod == null) {
-                            missingMods.add(remoteMod);
-                        }
-                    }
-
-                    // 如果配置了自动下载缺失模组，则返回下载中状态
-                    if (Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod && !missingMods.isEmpty()) {
-                        AutoUpdate.LOGGER.info("Auto-downloading {} missing mods", missingMods.size());
-                        return UpdateCheckResult.downloading(missingMods, modsToUpdate, remoteModList.getPackVersion());
-                    }
-                } else {
-                    return UpdateCheckResult.failure();
-                }
-
-                // 创建包含下载结果的更新检查结果
-                return UpdateCheckResult.successWithDownload(modsToUpdate, remoteModList.getPackVersion(), null);
-            } catch (Exception e) {
-                AutoUpdate.LOGGER.error("Error during update check with download: {}", e.getMessage());
+    private static CompletableFuture<UpdateCheckResult> checkForUpdatesWithDownload() {
+        return compareRemoteWithLocal().thenApply(comparisonResult -> {
+            if (!comparisonResult.success){
                 return UpdateCheckResult.failure();
+            }
+            if (!comparisonResult.missingMods.isEmpty()){
+                return UpdateCheckResult.downloading(comparisonResult.missingMods,comparisonResult.packVersion);
+            }else {
+                return UpdateCheckResult.successWithNoNeedToDownload(comparisonResult.packVersion,
+                        new ModDownloadManager.DownloadResult(0,0,true));
             }
         });
     }
 
     /**
-     * 带下载功能的更新检查（非阻塞版本）
+     * 带下载功能的更新检查
      */
     public static void checkUpdateWithDownload(MinecraftClient client, String updateScreenTranslateKey) {
-        // 显示检查更新中的Toast（使用简单的SystemToast）
         client.getToastManager().add(SystemToast.create(client, SystemToast.Type.NARRATOR_TOGGLE, 
                 Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".checking"), Text.empty()));
         
@@ -142,14 +91,7 @@ public class UpdateChecker {
                     if (result.success()) {
                         if (result.isDownloading()) {
                             // 如果有模组正在下载，启动下载并等待完成
-                            startDownloadAndShowResult(client, result.missingMods(), result.modsToUpdate(), updateScreenTranslateKey);
-                        } else if (!result.modsToUpdate().isEmpty()) {
-                            // 如果有需要更新的模组，打开模组更新选择界面
-                            client.setScreen(new ModUpdateSelectionScreen(
-                                    Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".selectionTitle"),
-                                    client.currentScreen,
-                                    result.modsToUpdate()
-                            ));
+                            startDownloadAndShowResult(client, result.missingMods());
                         } else {
                             // 如果没有需要更新的模组，显示完成Toast
                             client.getToastManager().add(ToastManager.getToast(client, 
@@ -172,23 +114,20 @@ public class UpdateChecker {
     /**
      * 启动下载并显示结果界面
      */
-    private static void startDownloadAndShowResult(MinecraftClient client, List<ModInfo> missingMods, List<ModInfo> modsToUpdate, String updateScreenTranslateKey) {
+    private static void startDownloadAndShowResult(MinecraftClient client, List<ModInfo> missingMods) {
         // 在开始下载前显示Toast提示
         client.getToastManager().add(ToastManager.getToast(client, 
                 AutoUpdate.MOD_ID + ".download.autoDownloadStarted"));
         
         ModDownloadManager downloadManager = new ModDownloadManager();
-        
         // 启动下载并等待完成
         downloadManager.downloadMissingMods(missingMods)
                 .thenAccept(downloadResult -> client.execute(() -> {
                     // 下载完成后显示结果界面
                     boolean success = downloadResult.overallSuccess();
                     int downloadedCount = downloadResult.successCount();
-                    
                     // 重新加载本地模组列表以反映新下载的模组
                     LocalModListManager.getInstance().loadModInfos();
-
                     // 显示下载结果界面
                     client.setScreen(new UpdateResultScreen(
                             Text.translatable(AutoUpdate.MOD_ID + ".resultScreen.title"),
@@ -213,21 +152,20 @@ public class UpdateChecker {
     }
 
     public static void checkUpdate(MinecraftClient client, String updateScreenTranslateKey) {
-        // 显示检查更新中的Toast（使用简单的SystemToast）
         client.getToastManager().add(SystemToast.create(client, SystemToast.Type.NARRATOR_TOGGLE,
                 Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".checking"), Text.empty()));
         
         // 非阻塞执行更新检查
         UpdateChecker.checkForUpdates()
                 .thenAccept(result -> client.execute(() -> {
-                    if (result.success() && !result.modsToUpdate().isEmpty()) {
+                    if (result.success() && !result.missingMods().isEmpty()) {
                         // 打开模组更新选择界面
                         client.setScreen(new ModUpdateSelectionScreen(
                                 Text.translatable(AutoUpdate.MOD_ID + updateScreenTranslateKey + ".selectionTitle"),
                                 client.currentScreen,
-                                result.modsToUpdate()
+                                result.missingMods()
                         ));
-                    } else if (result.modsToUpdate().isEmpty() && result.success()) {
+                    } else if (result.missingMods().isEmpty() && result.success()) {
                         client.getToastManager().add(ToastManager.getToast(client, 
                                 AutoUpdate.MOD_ID + updateScreenTranslateKey + ".noNeedToUpdateToast"));
                     } else {
@@ -243,4 +181,36 @@ public class UpdateChecker {
                     return null;
                 });
     }
+    private static CompletableFuture<ComparisonResult> compareRemoteWithLocal() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                RemoteModList remoteModList = fetchRemoteModList();
+                if (remoteModList == null) {
+                    return ComparisonResult.failure();
+                }
+                List<ModInfo> missingMods = new ArrayList<>();
+                for (ModInfo remoteMod : remoteModList.getModInfos()) {
+                    ModInfo localMod = LocalModListManager.getInstance().getModById(remoteMod.getId());
+                    if (localMod==null){
+                        missingMods.add(remoteMod);
+                    }
+                }
+                return ComparisonResult.success(missingMods, remoteModList.getPackVersion());
+            } catch (Exception e) {
+                AutoUpdate.LOGGER.error("Error during update comparison: {}", e.getMessage());
+                return ComparisonResult.failure();
+            }
+        });
+    }
+
+    private record ComparisonResult(boolean success, List<ModInfo> missingMods, String packVersion) {
+
+        static ComparisonResult failure() {
+                return new ComparisonResult(false, Collections.emptyList(), null);
+            }
+
+            static ComparisonResult success(List<ModInfo> modsToUpdate, String packVersion) {
+                return new ComparisonResult(true, modsToUpdate, packVersion);
+            }
+        }
 }
