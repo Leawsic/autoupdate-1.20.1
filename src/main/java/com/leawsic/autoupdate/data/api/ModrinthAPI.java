@@ -8,7 +8,6 @@ import com.leawsic.autoupdate.AutoUpdate;
 import com.leawsic.autoupdate.utils.FileDownloader;
 import com.leawsic.autoupdate.utils.ModDownloadManager;
 import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -16,18 +15,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+
+import static com.leawsic.autoupdate.data.api.Base.*;
 
 public class ModrinthAPI {
-    static final OkHttpClient httpClient=new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build();
     static final String baseUrl = "https://api.modrinth.com/v2/";
-    static final String UA="User-Agent";
     static final String searchUrl=baseUrl+"search";
-    static final String userAgent = "AutoUpdate/" + AutoUpdate.MOD_VER;
     static final String getProjectUrl=baseUrl+"project/";
     static final String getProjectVersionsUrlFormatted=getProjectUrl+"%s/version";
     /**
@@ -39,27 +32,29 @@ public class ModrinthAPI {
                 .addQueryParameter("limit", String.valueOf(limit))
                 .addQueryParameter("facets", getFacetsString(gameVersion,loader)).build())
                 .addHeader(UA,userAgent).build();
-        Response response=httpClient.newCall(searchModRequest).execute();
-        JsonArray hits=JsonParser.parseString(response.body().string()).getAsJsonObject().get("hits").getAsJsonArray();
-        if (!hits.isEmpty()){
-            JsonObject hitModInfo=hits.get(0).getAsJsonObject();
-            Request getVersionRequest=
-                    new Request.Builder().get().url(HttpUrl.parse(getProjectVersionsUrlFormatted.formatted(hitModInfo.get("project_id").getAsString())).newBuilder()
-                            .addQueryParameter("loaders",getSingleParameterJsonArray(loader).toString())
-                            .addQueryParameter("game_versions",getSingleParameterJsonArray(gameVersion).toString())
-                            .build()).addHeader(UA,userAgent).build();
-            Response getVersionResponse=httpClient.newCall(getVersionRequest).execute();
-            if (getVersionResponse.code()== HttpURLConnection.HTTP_OK){
-                JsonArray modVersionsArray=JsonParser.parseString(getVersionResponse.body().string()).getAsJsonArray();
-                for (JsonElement modVersion:modVersionsArray){
-                    JsonObject modVersionObject=modVersion.getAsJsonObject();
-                    JsonObject fileObject=modVersionObject.get("files").getAsJsonArray().get(0).getAsJsonObject();
+        try(Response response=httpClient.newCall(searchModRequest).execute()) {
+            JsonArray hits = JsonParser.parseString(response.body().string()).getAsJsonObject().get("hits").getAsJsonArray();
+            if (!hits.isEmpty()) {
+                JsonObject hitModInfo = hits.get(0).getAsJsonObject();
+                Request getVersionRequest =
+                        new Request.Builder().get().url(HttpUrl.parse(getProjectVersionsUrlFormatted.formatted(hitModInfo.get("project_id").getAsString())).newBuilder()
+                                .addQueryParameter("loaders", getSingleParameterJsonArray(loader).toString())
+                                .addQueryParameter("game_versions", getSingleParameterJsonArray(gameVersion).toString())
+                                .build()).addHeader(UA, userAgent).build();
+                try(Response getVersionResponse = httpClient.newCall(getVersionRequest).execute()) {
+                    if (getVersionResponse.code() == HttpURLConnection.HTTP_OK) {
+                        JsonArray modVersionsArray = JsonParser.parseString(getVersionResponse.body().string()).getAsJsonArray();
+                        for (JsonElement modVersion : modVersionsArray) {
+                            JsonObject modVersionObject = modVersion.getAsJsonObject();
+                            JsonObject fileObject = modVersionObject.get("files").getAsJsonArray().get(0).getAsJsonObject();
 
-                    if (Objects.equals(hash, fileObject.get("hashes").getAsJsonObject().get("sha1").getAsString())){
-                        JsonObject target=new JsonObject();
-                        target.addProperty("url",fileObject.get("url").getAsString());
-                        target.addProperty("filename", fileObject.get("filename").getAsString());
-                        return target;
+                            if (Objects.equals(hash, fileObject.get("hashes").getAsJsonObject().get("sha1").getAsString())) {
+                                JsonObject target = new JsonObject();
+                                target.addProperty("url", fileObject.get("url").getAsString());
+                                target.addProperty("filename", fileObject.get("filename").getAsString());
+                                return target;
+                            }
+                        }
                     }
                 }
             }
@@ -71,9 +66,10 @@ public class ModrinthAPI {
             JsonObject searchResult=searchForModFileUrl(modName,gameVer,loader,1,hash);
             File modFile=new File(Objects.requireNonNull(ModDownloadManager.getModsDirectory()),
                     Objects.requireNonNull(searchResult).get("filename").getAsString());
-            return FileDownloader.downloadFile(Objects.requireNonNull(searchResult).get("url").getAsString(), modFile, userAgent, httpClient);
+            return FileDownloader.downloadFile(Objects.requireNonNull(searchResult).get("url").getAsString(), modFile
+                    , userAgent);
         } catch (IOException e) {
-            AutoUpdate.LOGGER.error("Error occurred when downloading mod!\n{}\n{}", e.getMessage(),e.getCause());
+            AutoUpdate.LOGGER.error("Error occurred when haveModsToDownload mod!\n{}\n{}", e.getMessage(),e.getCause());
             return false;
         }
     }

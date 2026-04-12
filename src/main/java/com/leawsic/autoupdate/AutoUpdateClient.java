@@ -15,7 +15,7 @@ public class AutoUpdateClient implements ClientModInitializer {
      * Runs the mod initializer on the client environment.
      */
     private boolean reminded = false;
-    
+
     @Override
     public void onInitializeClient() {
         Config.getInstance().initializeModDir();
@@ -24,9 +24,9 @@ public class AutoUpdateClient implements ClientModInitializer {
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public void reload(ResourceManager manager) {
-                if (!reminded && Config.getInstance().getConfigInfoFromFile(null).startWithCheck) {
+                if (!reminded && Config.getInstance().getInfo().isStartWithCheck()) {
                     // 根据配置选择正确的检查更新方法
-                    if (Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod) {
+                    if (Config.getInstance().getInfo().isAutoDownloadMissingMod()) {
                         UpdateChecker.checkUpdateWithDownload(net.minecraft.client.MinecraftClient.getInstance(), ModUpdateScreen.updateScreenTranslateKey);
                     } else {
                         UpdateChecker.checkUpdate(net.minecraft.client.MinecraftClient.getInstance(), ModUpdateScreen.updateScreenTranslateKey);

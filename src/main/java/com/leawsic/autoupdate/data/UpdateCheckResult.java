@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record UpdateCheckResult(boolean success, String packVersion,
-                               DownloadResult downloadResult, boolean downloading, List<ModInfo> missingMods) {
+                                DownloadResult downloadResult, boolean haveModsToDownload, List<ModInfo> missingMods) {
 
     public static UpdateCheckResult success(String packVersion,List<ModInfo> missingMods) {
         return new UpdateCheckResult(true, packVersion, null, false, missingMods);
@@ -17,7 +17,7 @@ public record UpdateCheckResult(boolean success, String packVersion,
         return new UpdateCheckResult(true, packVersion, downloadResult, false, new ArrayList<>());
     }
 
-    public static UpdateCheckResult downloading(List<ModInfo> missingMods, String packVersion) {
+    public static UpdateCheckResult haveModsToDownload(List<ModInfo> missingMods, String packVersion) {
         return new UpdateCheckResult(true, packVersion, null, true, missingMods);
     }
 
@@ -25,8 +25,8 @@ public record UpdateCheckResult(boolean success, String packVersion,
         return new UpdateCheckResult(false, "", null, false, new ArrayList<>());
     }
 
-    public boolean isDownloading() {
-        return downloading;
+    public boolean isHavingModsToDownload() {
+        return haveModsToDownload;
     }
 
     public List<ModInfo> missingMods() {

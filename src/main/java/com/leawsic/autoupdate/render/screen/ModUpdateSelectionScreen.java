@@ -182,7 +182,6 @@ public class ModUpdateSelectionScreen extends Screen {
         this.updateButton.setMessage(Text.translatable(AutoUpdate.MOD_ID + ".updateScreen.updating"));
         
         // 在开始下载前显示Toast提示
-        assert client!=null;
         this.client.getToastManager().add(ToastManager.getToast(this.client, 
                 AutoUpdate.MOD_ID + ".download.autoDownloadStarted"));
     

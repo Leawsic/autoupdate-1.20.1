@@ -19,10 +19,9 @@ public class ModUpdateScreen extends Screen {
 
     @Override
     protected void init() {
-        assert client!=null;
         // 检查更新按钮（带自动下载）- 更美观的设计
         ButtonWidget checkBtn = ButtonWidget.builder(title, button -> {
-            if (Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod) {
+            if (Config.getInstance().getInfo().isAutoDownloadMissingMod()) {
                 UpdateChecker.checkUpdateWithDownload(this.client, updateScreenTranslateKey);
             } else {
                 UpdateChecker.checkUpdate(this.client, updateScreenTranslateKey);
@@ -64,7 +63,7 @@ public class ModUpdateScreen extends Screen {
                 this.width / 2, 70, 0xCCCCCC);
 
         // 自动下载状态显示
-        boolean autoDownload = Config.getInstance().getConfigInfoFromFile(null).autoDownloadMissingMod;
+        boolean autoDownload = Config.getInstance().getInfo().isAutoDownloadMissingMod();
         Text statusText = Text.translatable(
                 AutoUpdate.MOD_ID + updateScreenTranslateKey + (autoDownload ? ".autoDownloadEnabled" : ".autoDownloadDisabled")
         );

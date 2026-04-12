@@ -21,48 +21,47 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 public class ExportModsListScreen extends Screen {
+    final String modsListVersion = "Version of mods list";
+    final String exportScreenTranslateKey = ".exportScreen";
     Screen parentScreen;
-    final String modsListVersion ="Version of mods list";
-    final String exportScreenTranslateKey=".exportScreen";
-    Gson gson=new GsonBuilder().setPrettyPrinting().create();
-    String modrinthSearchBaseURL="https://api.modrinth.com/v2/search/";
-    public ExportModsListScreen(Text title,Screen parent) {
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    public ExportModsListScreen(Text title, Screen parent) {
         super(title);
-        this.parentScreen=parent;
+        this.parentScreen = parent;
     }
 
     @Override
     public void close() {
         if (this.client != null) {
             this.client.setScreen(parentScreen);
-        }else {
+        } else {
             throw new NullPointerException("Client shouldn't be null!");
         }
     }
 
     @Override
     protected void init() {
-        TextFieldWidget textFieldWidget=new TextFieldWidget(this.textRenderer,this.width/2-85,this.height/5-10,170,20,Text.translatable(AutoUpdate.MOD_ID+".exportScreen"+".exportListBtn"));
+        TextFieldWidget textFieldWidget = new TextFieldWidget(this.textRenderer, this.width / 2 - 85, this.height / 5 - 10, 170, 20, Text.translatable(AutoUpdate.MOD_ID + ".exportScreen" + ".exportListBtn"));
 
-        ButtonWidget exportBtn=
-                ButtonWidget.builder(Text.translatable(AutoUpdate.MOD_ID+".exportScreen"+".exportListBtn"),button -> {
-                    List<ModInfo> modInfos=LocalModListManager.getInstance().getModInfos();
-                    File modsListFile=new File(Config.getInstance().getAutoupdateDir(),
+        ButtonWidget exportBtn =
+                ButtonWidget.builder(Text.translatable(AutoUpdate.MOD_ID + ".exportScreen" + ".exportListBtn"), button -> {
+                    List<ModInfo> modInfos =
+                            LocalModListManager.getInstance().getModInfos().stream().filter(modInfo -> !modInfo.getSha1().isBlank()).toList();
+                    File modsListFile = new File(Config.getInstance().getAutoupdateDir(),
                             "modsList-%s.json".formatted(LocalDateTime.now().format(TimeFormatter.LOCAL_DATE_TIME)));
-                    String listVersion=textFieldWidget.getText();
+                    String listVersion = textFieldWidget.getText();
 
-                    assert client!=null;
-                    if (Objects.equals(listVersion, "")){
+                    if (listVersion.isBlank()) {
                         this.client.getToastManager().add(ToastManager.getToast(this.client,
-                                AutoUpdate.MOD_ID+exportScreenTranslateKey+".emptyVersionToast"));
+                                AutoUpdate.MOD_ID + exportScreenTranslateKey + ".emptyVersionToast"));
                         AutoUpdate.LOGGER.warn("Version is empty,export fail");
-                    }else {
+                    } else {
                         try {
-                            writeToJson(gson,modsListFile,listVersion,modInfos);
-                            this.client.getToastManager().add(ToastManager.getToast(this.client,AutoUpdate.MOD_ID+exportScreenTranslateKey+".exportSuccessfullyToast"));
+                            writeToJson(gson, modsListFile, listVersion, modInfos);
+                            this.client.getToastManager().add(ToastManager.getToast(this.client, AutoUpdate.MOD_ID + exportScreenTranslateKey + ".exportSuccessfullyToast"));
                             AutoUpdate.LOGGER.info("Mods list exported successfully!");
                             this.close();
                         } catch (IOException e) {
@@ -70,14 +69,15 @@ public class ExportModsListScreen extends Screen {
                             throw new RuntimeException(e);
                         }
                     }
-                }).dimensions(this.width/2-85,this.height/2-10,170,20).build();
+                }).dimensions(this.width / 2 - 85, this.height / 2 - 10, 170, 20).build();
 
         addDrawableChild(exportBtn);
         addDrawableChild(textFieldWidget);
     }
-    private void writeToJson(Gson gson,File file,String modsListVersion,List<ModInfo> modInfos)throws IOException{
-        String json=gson.toJson(new RemoteModList(modsListVersion,modInfos).toJsonObject());
-        FileWriter writer=new FileWriter(file);
+
+    private void writeToJson(Gson gson, File file, String modsListVersion, List<ModInfo> modInfos) throws IOException {
+        String json = gson.toJson(new RemoteModList(modsListVersion, modInfos).toJsonObject());
+        FileWriter writer = new FileWriter(file);
         writer.write(json);
         writer.close();
     }
@@ -86,8 +86,8 @@ public class ExportModsListScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
         context.drawTextWithShadow(this.textRenderer, modsListVersion,
-                this.width/2- modsListVersion.length()*3+ modsListVersion.length()/2,
-                this.height/10, Colors.WHITE);
-        super.render(context,mouseX,mouseY,delta);
+                this.width / 2 - modsListVersion.length() * 3 + modsListVersion.length() / 2,
+                this.height / 10, Colors.WHITE);
+        super.render(context, mouseX, mouseY, delta);
     }
 }

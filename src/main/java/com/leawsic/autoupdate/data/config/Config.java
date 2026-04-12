@@ -5,10 +5,11 @@ import com.leawsic.autoupdate.AutoUpdate;
 import net.minecraft.client.MinecraftClient;
 
 import java.io.*;
+import java.util.Objects;
 
 public class Config {
-    public static ConfigInfo info=null;
-    private static File autoupdateDir=null;
+    private ConfigInfo info=null;
+    private File autoupdateDir=null;
     public static final String CONFIG_FILE_NAME="config.json";
     private static final Config INSTANCE=new Config();
     private Config(){}
@@ -17,6 +18,10 @@ public class Config {
             throw new NullPointerException("Config INSTANCE not initialized yet");
         }
         return INSTANCE;
+    }
+
+    public ConfigInfo getInfo() {
+        return info;
     }
 
     public void initializeModDir(){
@@ -44,7 +49,8 @@ public class Config {
     private boolean checkOrCreateDefaultFiles() {
         File configFile = new File(autoupdateDir, CONFIG_FILE_NAME);
         try {
-            if (!configFile.exists()){
+            if (!configFile.exists() || new GsonBuilder().create().fromJson(new FileReader(configFile),
+                    ConfigInfo.class)==null){
                 if (writeConfigInfoToFile(ConfigInfo.DEFAULT, configFile)){
                     AutoUpdate.LOGGER.info("Default files created successfully!");
                 }
@@ -58,7 +64,7 @@ public class Config {
             return false;
         }
     }
-    public ConfigInfo getConfigInfoFromFile(File configFile) {
+    private ConfigInfo getConfigInfoFromFile(File configFile) {
         if (configFile==null){
             configFile=new File(autoupdateDir,CONFIG_FILE_NAME);
         }
@@ -96,5 +102,10 @@ public class Config {
             AutoUpdate.LOGGER.warn("Dir already exists!");
             return file;
         }
+    }
+    public void refreshConfigInfoToFile(ConfigInfo content){
+        Objects.requireNonNull(content);
+        info=content;
+        writeConfigInfoToFile(content,new File(autoupdateDir,CONFIG_FILE_NAME));
     }
 }

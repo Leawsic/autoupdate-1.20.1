@@ -1,7 +1,7 @@
 package com.leawsic.autoupdate.utils;
 
 import com.leawsic.autoupdate.AutoUpdate;
-import okhttp3.OkHttpClient;
+import com.leawsic.autoupdate.data.api.Base;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -11,14 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FileDownloader {
-    public static boolean downloadFile(String fileUrl, File localFile, String userAgent, OkHttpClient httpClient) throws IOException {
+    public static boolean downloadFile(String fileUrl, File localFile, String userAgent) throws IOException {
         Request request = new Request.Builder()
                 .url(fileUrl)
                 .addHeader("User-Agent", userAgent)
                 .build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
-            assert response.body()!=null;
+        try (Response response = Base.httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 AutoUpdate.LOGGER.error("Failed to download file from {}: HTTP {} - {}",
                         fileUrl, response.code(), response.message());
